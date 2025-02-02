@@ -1,6 +1,6 @@
 [package]
 name = "racme"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["YuWhisper yu.whisper.personal@gmail.com"]
 edition = "2021"
 description = "Rust 庫，提供與 ACME 協議互動的功能，支援自動化憑證管理，適用於 Let's Encrypt 等 CA。"
@@ -8,9 +8,9 @@ repository = "https://github.com/YuFireWhisper/racme.git"
 license = "MIT"
 
 [dependencies]
-serde_json = { version = "1.0.138", features = ["preserve_order"] }
-serde = { version = "1.0.217", features = ["derive"] }
-reqwest = { version = "0.12.12", features = ["blocking", "json"] }
-openssl = "0.10.68"
-thiserror = "2.0.11"
-chrono = "0.4.39"
+serde = { version = "^1.0.217", features = ["derive"] }
+serde_json = { version = "^1.0.138", features = ["preserve_order"] }
+reqwest = { version = "^0.12.12", features = ["blocking", "json"] }
+openssl = "^0.10.68"
+thiserror = "^2.0.11"
+chrono = "^0.4.39"
