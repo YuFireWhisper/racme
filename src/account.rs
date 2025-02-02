@@ -242,6 +242,22 @@ impl Account {
 
         Ok(Certificate::new(&String::from_utf8_lossy(&cert_pem))?)
     }
+
+    /// 返回帳戶中指定域名的密鑰對。
+    ///
+    /// 該方法會從存儲中讀取指定域名的密鑰對，並返回 [`KeyPair`] 實例。
+    ///
+    /// # Arguments
+    ///
+    /// * `domain` - 指定的域名。
+    ///
+    /// # Errors
+    ///
+    /// 返回 [`StorageError`] 當讀取密鑰文件失敗，或者 [`KeyError`] 當解析密鑰失敗時。
+    pub fn get_key_pair(&self, domain: &str) -> Result<KeyPair> {
+        let cert_key_path = format!("{}/{}/cert_key", &self.email, domain);
+        Ok(KeyPair::from_file(&*self.storage, &cert_key_path)?)
+    }
 }
 
 /// 用於構建 [`Account`] 實例的構造器，採用 builder 模式。
