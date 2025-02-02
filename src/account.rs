@@ -254,7 +254,7 @@ impl Account {
     /// # Errors
     ///
     /// 返回 [`StorageError`] 當讀取密鑰文件失敗，或者 [`KeyError`] 當解析密鑰失敗時。
-    pub fn get_key_pair(&self, domain: &str) -> Result<KeyPair> {
+    pub fn get_cert_key(&self, domain: &str) -> Result<KeyPair> {
         let cert_key_path = format!("{}/{}/cert_key", &self.email, domain);
         Ok(KeyPair::from_file(&*self.storage, &cert_key_path)?)
     }
