@@ -246,6 +246,9 @@ struct EntryMetadata {
 impl FileStorage {
     /// 開啟或建立指定路徑的檔案儲存，並建構內部索引。
     ///
+    /// 在 Unix 平台上，利用 OpenOptionsExt 的 mode(0o600) 設置檔案權限，
+    /// 使只有檔案擁有者能讀寫該檔案。
+    ///
     /// # 參數
     ///
     /// - `path`: 儲存檔案的路徑。
@@ -254,11 +257,18 @@ impl FileStorage {
     ///
     /// 成功時回傳 [`FileStorage`] 實例，否則回傳錯誤。
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let file = std::fs::OpenOptions::new()
-            .read(true)
-            .create(true)
-            .append(true)
-            .open(path)?;
+        let file = {
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::OpenOptionsExt;
+                std::fs::OpenOptions::new()
+                    .read(true)
+                    .create(true)
+                    .append(true)
+                    .mode(0o600) // 只有擁有者可讀寫
+                    .open(path)?
+            }
+        };
 
         let index = Self::build_index(&file)?;
 
@@ -628,4 +638,3 @@ impl Storage for MemStorage {
             .contains_key(&path))
     }
 }
-
