@@ -76,6 +76,8 @@ pub enum OrderError {
     ChallengeNotFound,
     #[error("DNS validation failed: {0}")]
     DnsValidation(String),
+    #[error("Unknown DNS provider: {0}")]
+    UnknownDnsProvider(String),
 }
 
 /// 操作訂單返回結果的簡寫類型
@@ -368,7 +370,7 @@ impl Order {
                 .challenges
                 .get_mut(&challenge_type)
                 .ok_or(OrderError::ChallengeNotFound)?;
- 
+
             challenge.dns_txt_value()
         };
 
@@ -707,6 +709,17 @@ pub enum DnsProvider {
     Cloudflare,
 }
 
+impl FromStr for DnsProvider {
+    type Err = OrderError;
+
+    fn from_str(s: &str) -> Result<Self> {
+        match s.to_lowercase().as_str() {
+            "cloudflare" => Ok(Self::Cloudflare),
+            unknown => Err(OrderError::UnknownDnsProvider(unknown.to_string())),
+        }
+    }
+}
+
 /// 用於向 Cloudflare 提交 DNS 記錄創建請求的結構
 #[derive(Debug, Serialize)]
 struct CloudflareDnsRecord {
@@ -758,4 +771,3 @@ struct CloudflareError {
     code: u32,
     message: String,
 }
-
