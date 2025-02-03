@@ -214,6 +214,25 @@ impl Order {
         Ok(order)
     }
 
+    /// 強制重新建立一個新的訂單：
+    ///
+    /// 此方法會先刪除儲存中的舊訂單資料，再呼叫 `Order::new`
+    /// 以建立新訂單，適用於需要更新憑證的情境。
+    ///
+    /// # 參數
+    ///
+    /// - `account`: 用於操作訂單與儲存的帳號參考
+    /// - `domain`: 要下訂的域名
+    ///
+    /// # 回傳
+    ///
+    /// 成功則回傳新的 `Order` 實例，否則回傳相應錯誤。
+    pub fn renew(account: &mut Account, domain: &str) -> Result<Self> {
+        let order_storage_path = format!("{}/{}/order_url", &account.email, domain);
+        account.storage.remove(&order_storage_path)?;
+        Order::new(account, domain)
+    }
+
     /// 設定 DNS Provider。
     ///
     /// 當 provider 為 Default 且 token 為空時，不做任何操作；否則兩者必須同時提供有效值。
