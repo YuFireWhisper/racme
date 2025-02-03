@@ -267,20 +267,22 @@ impl Order {
         Ok(self)
     }
 
-    /// 顯示所有挑戰提示訊息，可傳入語言代碼（例如 Some("zh-tw")），
-    /// 若未指定則使用預設 "zh-tw"。
+    /// 顯示所有挑戰提示訊息，可傳入語言代碼（例如 "zh-tw"），
+    /// 若代碼字串為空則使用預設 "zh-tw"。
     ///
     /// 此方法主要用於協助使用者根據提示完成挑戰配置。
     ///
     /// # 參數
     ///
-    /// - `lang`: 可選的語言代碼參數
+    /// - `lang`: 語言代碼參數(允許為空)
     ///
     /// # 回傳
     ///
     /// 回傳對自身的不可變參考，方便鏈式調用。
-    pub fn display_challenges(&self, lang: Option<&str>) -> &Self {
-        let lang = lang.unwrap_or("zh-tw");
+    pub fn display_challenges(&self, lang: &str) -> &Self {
+        // 如果 lang 為空，則預設為 "zh-tw"
+        let lang = if lang.is_empty() { "zh-tw" } else { lang };
+
         println!("===== 挑戰提示 =====");
         for (ctype, challenge) in &self.challenges {
             println!("- {:?} 挑戰：", ctype);
