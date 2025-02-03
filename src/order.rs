@@ -438,7 +438,6 @@ impl Order {
         }
         let response: OrderUpdateResponse = response.json()?;
         self.status = response.status;
-        println!("Finalized: Order status = {:?}", self.status);
         self.certificate = response.certificate;
         Ok(self)
     }

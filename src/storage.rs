@@ -1,7 +1,7 @@
 use std::{
     collections::HashMap,
     fmt,
-    io::{self, Read, Seek, SeekFrom, Write},
+    io::{self, BufRead, Read, Seek, SeekFrom, Write},
     path::{Path, PathBuf},
     sync::{Arc, RwLock},
 };
@@ -23,6 +23,8 @@ pub enum StorageError {
     NotDirectory(String),
     #[error("Lock poisoned")]
     LockPoisoned,
+    #[error("File is corrupted")]
+    CorruptedFile,
 }
 
 /// 儲存操作的結果類型，封裝 [`StorageError`]。
@@ -247,18 +249,6 @@ struct EntryMetadata {
 }
 
 impl FileStorage {
-    /// 開啟或建立指定路徑的檔案儲存，並建構內部索引。
-    ///
-    /// 在 Unix 平台上，利用 OpenOptionsExt 的 mode(0o600) 設置檔案權限，
-    /// 使只有檔案擁有者能讀寫該檔案。
-    ///
-    /// # 參數
-    ///
-    /// - `path`: 儲存檔案的路徑。
-    ///
-    /// # 回傳
-    ///
-    /// 成功時回傳 [`FileStorage`] 實例，否則回傳錯誤。
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
         let file = {
             #[cfg(unix)]
@@ -306,38 +296,63 @@ impl FileStorage {
     fn build_index(file: &std::fs::File) -> Result<StorageIndex> {
         let mut reader = io::BufReader::new(file);
         let mut entries = HashMap::new();
-        let mut offset = 0;
+        let mut offset = 0u64;
 
         loop {
-            let mut header = [0u8; 8];
-            match reader.read_exact(&mut header) {
-                Ok(_) => {}
-                Err(e) if e.kind() == io::ErrorKind::UnexpectedEof => break,
-                Err(e) => return Err(e.into()),
+            let entry_offset = offset;
+
+            let buffer = reader.fill_buf()?;
+            if buffer.is_empty() {
+                break;
             }
 
-            let (key_len, flags) = Self::parse_header(&header);
-            let mut key_buf = vec![0u8; key_len as usize];
-            reader.read_exact(&mut key_buf)?;
+            if buffer.len() < 8 {
+                break;
+            }
 
+            let header: [u8; 8] = buffer[..8].try_into().unwrap();
+            reader.consume(8);
+            offset += 8;
+
+            let (key_len, flags) = Self::parse_header(&header);
+
+            let mut key_buf = vec![0u8; key_len as usize];
+            if let Err(e) = reader.read_exact(&mut key_buf) {
+                if e.kind() == io::ErrorKind::UnexpectedEof {
+                    break;
+                } else {
+                    return Err(e.into());
+                }
+            }
+            offset += key_len as u64;
             let key = String::from_utf8_lossy(&key_buf);
             let path = KeyUtils::normalize(&key)?;
 
             let mut size_buf = [0u8; 4];
-            reader.read_exact(&mut size_buf)?;
+            if let Err(e) = reader.read_exact(&mut size_buf) {
+                if e.kind() == io::ErrorKind::UnexpectedEof {
+                    break;
+                } else {
+                    return Err(e.into());
+                }
+            }
+            offset += 4;
             let size = u32::from_le_bytes(size_buf);
+
+            let skipped = io::copy(&mut (&mut reader).take(size as u64), &mut io::sink())?;
+            if skipped != size as u64 {
+                break;
+            }
+            offset += size as u64;
 
             entries.insert(
                 path,
                 EntryMetadata {
-                    offset,
+                    offset: entry_offset,
                     is_dir: flags & 1 == 1,
                     is_deleted: flags & 2 == 2,
                 },
             );
-
-            reader.seek(SeekFrom::Current(size as i64))?;
-            offset += 8 + key_len as u64 + 4 + size as u64;
         }
 
         Ok(StorageIndex { entries })
