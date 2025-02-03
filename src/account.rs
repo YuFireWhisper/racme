@@ -55,6 +55,7 @@ pub enum AccountError {
 pub type Result<T> = std::result::Result<T, AccountError>;
 
 /// 表示 ACME 帳戶的結構體，包含註冊信息、密鑰對、目錄與存儲操作等。
+#[derive(Debug)]
 pub struct Account {
     /// 帳戶所屬電子郵件地址。
     pub email: String,
