@@ -62,6 +62,10 @@ impl Certificate {
         let diff = not_after.diff(now_asn1.as_ref())?;
         let remaining_seconds = diff.days as i64 * 86400 + diff.secs as i64;
         let threshold_seconds = threshold_days as i64 * 86400;
+
+        println!("Remaining seconds: {}", remaining_seconds);
+        println!("Threshold seconds: {}", threshold_seconds);
+
         Ok(remaining_seconds < threshold_seconds)
     }
 }

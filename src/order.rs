@@ -455,19 +455,20 @@ impl Order {
     ///
     /// 下載成功回傳 `()`，否則回傳相應錯誤
     pub fn download_certificate(&mut self, account: &Account) -> Result<()> {
-        println!("{:#?}", self.status);
+        println!("status before download cert: {:#?}", self.status);
         let cert_storage_path = format!("{}/{}/cert", &account.email, &self.domain);
         if self.status == OrderStatus::Processing {
             loop {
                 let order = Self::get_order(&self.order_url)?;
-                if order.status == OrderStatus::Valid {
-                    self.status = OrderStatus::Valid;
+                self.status = order.status;
+                if self.status == OrderStatus::Valid {
                     self.certificate = order.certificate;
                     break;
                 }
                 thread::sleep(Duration::from_secs(5));
             }
         }
+        println!("status after download cert: {:#?}", self.status);
         if self.certificate.is_none() || self.status != OrderStatus::Valid {
             return Err(OrderError::OrderNotValid);
         }
