@@ -172,7 +172,6 @@ impl KeyPair {
     /// 成功回傳 thumbprint 字串，否則回傳相對應的錯誤。
     pub fn thumbprint(&self) -> Result<String> {
         let jwk = Jwk::new(self, None)?;
-        println!("{:?}", jwk.to_acme_json()?);
         let hash = sha256(jwk.to_acme_json()?.as_bytes());
         Ok(Base64::new(hash).base64_url())
     }
