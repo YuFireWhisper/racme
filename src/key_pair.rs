@@ -35,6 +35,7 @@ type Result<T> = std::result::Result<T, KeyError>;
 /// 表示一組非對稱加密的金鑰對。
 ///
 /// 此結構包含演算法名稱、私鑰與對應的公鑰，並提供產生、轉換與相關操作的方法。
+#[derive(Debug)]
 pub struct KeyPair {
     /// 加密演算法名稱，目前僅支援 "RSA"。
     pub alg_name: String,
