@@ -27,8 +27,9 @@
 //!
 //! 以下是一個簡單的示例，展示如何使用該庫完成 ACME 帳戶與訂單的基本操作：
 //!
-//! ```rust
-//! use acme_lib::{account::Account, order::{Order, DnsProvider}};
+//! ```rust, no_run
+//! use racme::{account::Account, order::{Order, DnsProvider}};
+//! use racme::challenge;
 //!
 //! fn main() -> Result<(), Box<dyn std::error::Error>> {
 //!     // 1. 創建 ACME 帳戶
@@ -39,10 +40,11 @@
 //!     let mut order = Order::new(&mut account, domain)?;
 //!
 //!     // 3. 如使用 DNS 驗證，先使用 Cloudflare 配置 DNS
-//!     order = order.dns_provider(DnsProvider::Cloudflare, "your-cloudflare-api-token")?;
+//!     order = order
+//!         .dns_provider(DnsProvider::Cloudflare, "your-cloudflare-api-token")?;
 //!
-//!     // 4. 驗證挑戰（假設使用 DNS-01 挑戰）
-//!     order = order.validate_challenge(&account, order::ChallengeType::Dns01)?;
+//!     // 4. 驗證挑戰
+//!     let mut order = order.validate_challenge(&account)?;
 //!
 //!     // 5. 當訂單處於 Ready 狀態，提交 CSR 以最終確認訂單
 //!     order.finalize(&account)?;

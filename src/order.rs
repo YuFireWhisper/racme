@@ -454,12 +454,15 @@ impl Order {
     /// # 回傳
     ///
     /// 下載成功回傳 `()`，否則回傳相應錯誤
-    pub fn download_certificate(&self, account: &Account) -> Result<()> {
+    pub fn download_certificate(&mut self, account: &Account) -> Result<()> {
+        println!("{:#?}", self.status);
         let cert_storage_path = format!("{}/{}/cert", &account.email, &self.domain);
         if self.status == OrderStatus::Processing {
             loop {
                 let order = Self::get_order(&self.order_url)?;
                 if order.status == OrderStatus::Valid {
+                    self.status = OrderStatus::Valid;
+                    self.certificate = order.certificate;
                     break;
                 }
                 thread::sleep(Duration::from_secs(5));

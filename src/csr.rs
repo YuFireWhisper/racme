@@ -18,7 +18,6 @@ pub enum CsrError {
     NoSanEntries,
 }
 
-/// 為簡化錯誤處理定義 Result 類型
 type Result<T> = result::Result<T, CsrError>;
 
 /// 表示一個 CSR 建構器，主要用於生成包含主體替代名稱 (SAN) 擴展的證書簽名請求。
@@ -26,13 +25,15 @@ type Result<T> = result::Result<T, CsrError>;
 /// # 範例
 ///
 /// ```
-/// # use your_crate::csr::CSR;
-/// # use your_crate::key_pair::KeyPair;
-/// let key_pair = KeyPair::generate().expect("金鑰生成失敗");
-/// let csr = CSR::new()
+/// # use racme::csr::CSR;
+/// # use racme::key_pair::KeyPair;
+/// # use racme::storage::MemStorage;
+///
+/// let storage = MemStorage::new();
+/// let key_pair = KeyPair::new(&storage, "RSA", Some(2048), None).expect("金鑰生成失敗");
+/// let csr = CSR::new().expect("初始化失敗")
 ///     .set_san("example.com")
-///     .build(&key_pair)
-///     .expect("CSR 建立失敗");
+///     .build(&key_pair).expect("CSR 建立失敗");
 /// ```
 pub struct CSR {
     san_entries: Vec<String>,
@@ -59,7 +60,7 @@ impl CSR {
     /// # 範例
     ///
     /// ```
-    /// # use your_crate::csr::CSR;
+    /// # use racme::csr::CSR;
     /// let csr = CSR::new().expect("初始化失敗").set_san("example.com");
     /// ```
     pub fn set_san(mut self, dns_name: &str) -> Self {

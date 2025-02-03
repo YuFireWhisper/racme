@@ -38,7 +38,7 @@ impl Nonce {
     /// # 範例
     ///
     /// ```
-    /// # use your_crate::Nonce;
+    /// # use racme::nonce::Nonce;
     /// let nonce = Nonce::new("https://example.com/acme/new-nonce");
     /// ```
     pub fn new(url: impl Into<String>) -> Self {
@@ -79,7 +79,7 @@ impl MockNonce {
     /// # 範例
     ///
     /// ```
-    /// # use your_crate::MockNonce;
+    /// # use racme::nonce::MockNonce;
     /// let mock = MockNonce::new("固定測試值");
     /// ```
     pub fn new(value: impl Into<String>) -> Self {

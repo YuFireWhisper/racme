@@ -14,6 +14,7 @@ pub trait PayloadT: Serialize + for<'de> Deserialize<'de> {
     ///
     /// ```
     /// # use serde::{Serialize, Deserialize};
+    /// # use racme::payload::PayloadT;
     /// # #[derive(Serialize, Deserialize)]
     /// # struct MyPayload;
     /// # impl PayloadT for MyPayload {
@@ -36,7 +37,9 @@ pub trait PayloadT: Serialize + for<'de> Deserialize<'de> {
     ///
     /// ```
     /// # use serde::{Serialize, Deserialize};
-    /// # use crate::base64::Base64;
+    /// # use racme::base64::Base64;
+    /// # use racme::payload::PayloadT;
+    ///
     /// # #[derive(Serialize, Deserialize)]
     /// # struct MyPayload;
     /// # impl PayloadT for MyPayload {

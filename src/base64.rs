@@ -21,7 +21,7 @@ pub enum DecodeError {
 /// # 示例
 ///
 /// ```
-/// # use your_crate::Base64;
+/// # use racme::base64::Base64;
 /// let data = "Hello, World!";
 /// let b64 = Base64::new(data);
 /// assert_eq!(b64.as_str(), "SGVsbG8sIFdvcmxkIQ==");
@@ -42,7 +42,7 @@ impl Base64 {
     /// # 示例
     ///
     /// ```
-    /// # use your_crate::Base64;
+    /// # use racme::base64::Base64;
     /// let b64 = Base64::new("abc");
     /// assert_eq!(b64.as_str(), "YWJj");
     /// ```
@@ -307,4 +307,3 @@ mod tests {
         ));
     }
 }
-
