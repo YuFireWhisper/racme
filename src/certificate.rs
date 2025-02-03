@@ -67,6 +67,6 @@ impl Certificate {
         println!("Threshold seconds: {}", threshold_seconds);
         println!("negative: {}", -remaining_seconds);
 
-        Ok(remaining_seconds >= 0 || -remaining_seconds > threshold_seconds)
+        Ok(remaining_seconds >= 0 || -remaining_seconds < threshold_seconds)
     }
 }
