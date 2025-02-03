@@ -71,6 +71,8 @@ pub enum OrderError {
     OrderNotValid,
     #[error("Order is not ready")]
     OrderNotReady,
+    #[error("Order is invalid")]
+    OrderInvalid,
     #[error("Cloudflare API error: {0}")]
     Cloudflare(String),
     #[error("No DNS challenge found")]
@@ -313,7 +315,7 @@ impl Order {
 
     /// 驗證挑戰：
     ///
-    /// 若訂單狀態已為 valid，則直接回傳；否則嘗試進行挑戰驗證。
+    /// 若訂單狀態已為 valid、processing 或 ready，則直接回傳；否則嘗試進行挑戰驗證。
     ///
     /// # 參數
     ///
@@ -323,11 +325,18 @@ impl Order {
     ///
     /// 回傳可變的 `Order` 引用，供後續操作使用；驗證失敗則回傳相應錯誤
     pub fn validate_challenge(&mut self, account: &Account) -> Result<&mut Self> {
-        if self.status == OrderStatus::Valid {
+        // 若訂單狀態已屬於 Valid、Processing 或 Ready，則直接回傳
+        if matches!(
+            self.status,
+            OrderStatus::Valid | OrderStatus::Processing | OrderStatus::Ready
+        ) {
             return Ok(self);
         }
         self.attempt_validation(account)?;
-        if self.status == OrderStatus::Valid {
+        if matches!(
+            self.status,
+            OrderStatus::Valid | OrderStatus::Processing | OrderStatus::Ready
+        ) {
             Ok(self)
         } else {
             Err(OrderError::DnsValidation("驗證未通過".into()))
@@ -354,11 +363,18 @@ impl Order {
         attempts: usize,
     ) -> Result<&mut Self> {
         for attempt in 0..attempts {
-            if self.status == OrderStatus::Valid {
-                return Ok(self);
+            match self.status {
+                OrderStatus::Valid | OrderStatus::Processing | OrderStatus::Ready => {
+                    return Ok(self)
+                }
+                OrderStatus::Pending => {}
+                OrderStatus::Invalid => return Err(OrderError::OrderInvalid),
             }
             self.attempt_validation(account)?;
-            if self.status == OrderStatus::Valid {
+            if matches!(
+                self.status,
+                OrderStatus::Valid | OrderStatus::Processing | OrderStatus::Ready
+            ) {
                 return Ok(self);
             }
             if attempt == attempts - 1 {
@@ -476,10 +492,13 @@ impl Order {
     ///
     /// # 注意
     ///
-    /// 若訂單狀態已為 valid 則不會再次嘗試驗證。
+    /// 若訂單狀態已為 valid、processing 或 ready 則不會再次嘗試驗證。
     fn attempt_validation(&mut self, account: &Account) -> Result<()> {
-        // 若訂單已 valid，不再嘗試
-        if self.status == OrderStatus::Valid {
+        // 若訂單已屬於 Valid、Processing 或 Ready，不再嘗試
+        if matches!(
+            self.status,
+            OrderStatus::Valid | OrderStatus::Processing | OrderStatus::Ready
+        ) {
             return Ok(());
         }
         // 優先進行 DNS 驗證
