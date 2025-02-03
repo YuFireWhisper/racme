@@ -1,5 +1,6 @@
 use std::{
     collections::HashMap,
+    fmt,
     io::{self, Read, Seek, SeekFrom, Write},
     path::{Path, PathBuf},
     sync::{Arc, RwLock},
@@ -28,7 +29,7 @@ pub enum StorageError {
 pub type Result<T> = std::result::Result<T, StorageError>;
 
 /// 定義儲存系統所需實現的 API，支援檔案與目錄的建立、讀取、寫入及刪除等操作。
-pub trait Storage: Send + Sync {
+pub trait Storage: Send + Sync + fmt::Debug {
     /// 建立指定 key 所對應的目錄樹，若不存在則自動建立。
     ///
     /// # 參數
@@ -225,18 +226,20 @@ impl KeyUtils {
 }
 
 /// 基於檔案的儲存實作，將資料存放於單一檔案中，並維護索引以快速查詢。
+#[derive(Debug)]
 pub struct FileStorage {
     index: Arc<RwLock<StorageIndex>>,
     file: Arc<RwLock<std::fs::File>>,
 }
 
 /// 檔案儲存的索引結構，用於儲存各個 entry 的 metadata。
+#[derive(Debug)]
 struct StorageIndex {
     entries: HashMap<PathBuf, EntryMetadata>,
 }
 
 /// Entry 的元資料，包括在檔案中的偏移量、是否為目錄以及是否已刪除。
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 struct EntryMetadata {
     offset: u64,
     is_dir: bool,
@@ -518,6 +521,7 @@ impl Storage for FileStorage {
 }
 
 /// 基於記憶體的儲存實作，資料與目錄結構皆保存在記憶體中。
+#[derive(Debug)]
 pub struct MemStorage {
     data: Arc<RwLock<HashMap<PathBuf, Vec<u8>>>>,
     dirs: Arc<RwLock<HashMap<PathBuf, ()>>>,
