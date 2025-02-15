@@ -1,6 +1,6 @@
 [package]
 name = "racme"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["YuWhisper yu.whisper.personal@gmail.com"]
 edition = "2021"
 description = "Rust 庫，提供與 ACME 協議互動的功能，支援自動化憑證管理，適用於 Let's Encrypt 等 CA。"
