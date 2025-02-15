@@ -27,6 +27,8 @@ pub enum KeyError {
     ThumbprintError,
     #[error("JWK error")]
     JwkError(#[from] JwkError),
+    #[error("IO error: {0}")]
+    IoError(#[from] std::io::Error),
 }
 
 /// 本模組使用的結果類型，當中錯誤皆為 `KeyError`。
@@ -200,13 +202,27 @@ impl KeyPair {
     ///
     /// # 參數
     ///
+    /// - `path`: 儲存私鑰 PEM 資料的檔案路徑。
+    ///
+    /// # 回傳
+    ///
+    /// 成功回傳建立好的 `KeyPair`，否則回傳對應的錯誤。
+    pub fn from_file(path: &str) -> Result<Self> {
+        let pri_key_data = std::fs::read(path)?;
+        Self::from_pem(&pri_key_data)
+    }
+
+    /// 從指定的檔案路徑讀取 PEM 格式的私鑰並建立金鑰對。
+    ///
+    /// # 參數
+    ///
     /// - `storage`: 實現了 `Storage` 特性的存儲對象。
     /// - `path`: 儲存私鑰 PEM 資料的檔案路徑。
     ///
     /// # 回傳
     ///
     /// 成功回傳建立好的 `KeyPair`，否則回傳對應的錯誤。
-    pub fn from_file(storage: &dyn Storage, path: &str) -> Result<Self> {
+    pub fn from_storage(storage: &dyn Storage, path: &str) -> Result<Self> {
         let pri_key_data = storage.read_file(path)?;
         Self::from_pem(&pri_key_data)
     }

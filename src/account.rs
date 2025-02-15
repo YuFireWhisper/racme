@@ -124,7 +124,7 @@ impl Account {
 
         if let Ok(account_url) = storage.read_file(&account_url_path) {
             let account_url = String::from_utf8(account_url)?;
-            let key_pair = KeyPair::from_file(&storage, &account_key_pair_path)?;
+            let key_pair = KeyPair::from_storage(&storage, &account_key_pair_path)?;
             let dir_data = storage.read_file(&dir_url_path)?;
             let dir = Directory::new(&storage, &String::from_utf8_lossy(&dir_data))?;
             let nonce = Nonce::new(&dir.new_nonce);
@@ -257,7 +257,7 @@ impl Account {
     /// 返回 [`StorageError`] 當讀取密鑰文件失敗，或者 [`KeyError`] 當解析密鑰失敗時。
     pub fn get_cert_key(&self, domain: &str) -> Result<KeyPair> {
         let cert_key_path = format!("{}/{}/cert_key", &self.email, domain);
-        Ok(KeyPair::from_file(&*self.storage, &cert_key_path)?)
+        Ok(KeyPair::from_storage(&*self.storage, &cert_key_path)?)
     }
 }
 
