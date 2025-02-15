@@ -13,6 +13,8 @@ pub enum CertificateError {
     InvalidTimestamp,
     #[error("Failed to parse expiration time: {0}")]
     ExpirationTimeParseError(String),
+    #[error("IO error: {0}")]
+    IoError(#[from] std::io::Error),
 }
 
 /// 自定義結果型別，錯誤類型為 `CertificateError`
@@ -39,6 +41,11 @@ impl Certificate {
     pub fn new(pem: &str) -> Result<Self> {
         let cert = X509::from_pem(pem.as_bytes())?;
         Ok(Certificate { cert })
+    }
+
+    pub fn from_file(path: &str) -> Result<Self> {
+        let pem = std::fs::read_to_string(path)?;
+        Self::new(&pem)
     }
 
     /// 判斷證書是否應該進行續約
