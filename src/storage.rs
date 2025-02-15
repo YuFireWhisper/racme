@@ -179,6 +179,11 @@ impl FileStorage {
             #[cfg(unix)]
             {
                 use std::os::unix::fs::OpenOptionsExt;
+
+                if let Some(parent) = path.as_ref().parent() {
+                    std::fs::create_dir_all(parent)?;
+                }
+
                 std::fs::OpenOptions::new()
                     .read(true)
                     .write(true)
